@@ -17,9 +17,9 @@ class ConfigureCommand extends Command {
     await getRegistryDefinition()
           .then(parseResponse)
           .then(response => {
-            if(hasJsonStructure(response.content)) {
+            if (hasJsonStructure(response.content)) {
               const json = JSON.parse(response.content)
-              if(json.info && json.info.title == 'SwaggerHub Registry API') {
+              if (json.info && json.info.title == 'SwaggerHub Registry API') {
                 return
               }
             }
