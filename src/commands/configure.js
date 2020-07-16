@@ -2,12 +2,30 @@ const { Command } = require('@oclif/command')
 const inquirer = require('inquirer')
 const { getPrompts } = require('../support/inquirer')
 const { setConfig, getConfig } = require('../config')
+const { getRegistryDefinition } = require('../actions/swaggerhub')
+const { parseResponse } = require('../support/command/response-handler')
+const { hasJsonStructure } = require('../utils/general')
+const { CLIError } = require('@oclif/errors')
 
 class ConfigureCommand extends Command {
+
   async run() {
     const prompts = getPrompts(['swaggerHubUrl','apiKey'])(getConfig())
+    await inquirer.prompt(prompts)
+                  .then(setConfig)
+    
+    await getRegistryDefinition()
+          .then(parseResponse)
+          .then(response => {
+            if(hasJsonStructure(response.content)) {
+              const json = JSON.parse(response.content)
+              if(json.info && json.info.title == 'SwaggerHub Registry API') {
+                return
+              }
+            }
 
-    inquirer.prompt(prompts).then(setConfig)
+            throw new CLIError('Misconfigured URL')
+          })
   }
 }
 
